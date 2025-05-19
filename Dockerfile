@@ -1,12 +1,32 @@
 FROM n8nio/n8n:latest
 
-# Chuyển sang user root để cài đặt
 USER root
 
-RUN apk update && apk add --no-cache ffmpeg python3 py3-pip
+# Cài các gói cần thiết cho Chromium và Playwright
+RUN apk update && apk add --no-cache \
+    chromium \
+    chromium-chromedriver \
+    python3 \
+    py3-pip \
+    bash \
+    curl \
+    ttf-freefont \
+    libstdc++ \
+    libx11 \
+    libxext \
+    libxrender \
+    mesa-gl \
+    mesa-dri-gallium \
+    nss \
+    && rm -rf /var/cache/apk/*
 
-# Cài npm packages
-RUN npm install moment lodash axios pyodide
+# Cài thư viện Python cần thiết
+RUN pip3 install --no-cache-dir playwright asyncio
 
-# Chuyển lại user n8n để chạy an toàn
+# Tải trình duyệt Chromium cho Playwright
+RUN python3 -m playwright install chromium
+
+# Cài thêm các thư viện npm nếu cần
+RUN npm install moment lodash axios
+
 USER node
