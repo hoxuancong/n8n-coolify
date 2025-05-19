@@ -1,41 +1,32 @@
-FROM n8nio/n8n:latest
+FROM node:18-bullseye-slim
 
-USER root
+# Cài hệ thống cần thiết
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-venv python3-pip curl bash git ffmpeg fonts-freefont-ttf \
+    libnss3 libxss1 libasound2 libatk-bridge2.0-0 libgtk-3-0 libgbm1 libxshmfence1 \
+    libxcomposite1 libxrandr2 libappindicator3-1 libatspi2.0-0 libxdamage1 libsecret-1-0 \
+    udev wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apk update && apk add --no-cache \
-    python3 py3-pip \
-    curl bash git \
-    ffmpeg ttf-freefont \
-    chromium \
-    libnss \
-    libstdc++ \
-    udev \
-    wget \
-    nss \
-    libc6-compat \
-    libxss1 \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
-    libgbm \
-    libxshmfence \
-    libxcomposite \
-    libxrandr \
-    libappindicator3-1 \
-    libatspi \
-    libxdamage \
-    libsecret
-
-# Tạo virtualenv và cài Python package
+# Tạo virtual environment Python
 RUN python3 -m venv /opt/venv
+
+# Kích hoạt venv, cập nhật pip và cài Python packages
 RUN /bin/bash -c "source /opt/venv/bin/activate && pip install --upgrade pip && pip install playwright asyncio"
 
-# Cài trình duyệt Chromium cho Playwright
+# Tải Chromium cho Playwright
 RUN /bin/bash -c "source /opt/venv/bin/activate && python -m playwright install chromium"
 
-# Cài npm packages
+# Cài n8n
+RUN npm install -g n8n
+
+# Cài các thư viện npm cần thiết
 RUN npm install moment lodash axios pyodide
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-USER node
+# Chạy n8n
+CMD ["n8n"]
+
+# Expose port
+EXPOSE 5678
